@@ -2,17 +2,27 @@ import React, { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCloud, faBolt, faCloudRain, faCloudShowersHeavy, faSnowflake, faSmog } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import loader from '../Assets/loader.gif'
+import loader from '../Assets/loader.gif';
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
+import "./WeatherSearch.css"; 
 
 library.add(faCloud, faBolt, faCloudRain, faCloudShowersHeavy, faSnowflake, faSmog);
 
 function WeatherSearch() {
-  const [search, setSearch] = useState("Kannur");
+  const [search, setSearch] = useState("" || "Kozhikode");
   const [data, setData] = useState(null);
   const [input, setInput] = useState("");
 
+  
+  useEffect(() => {
+    getCurrentLocation();
+  }, []); // Call getCurrentLocation on component mount
+
 
   useEffect(() => {
+
+     
     let componentMounted = true;
 
     const fetchWeather = async () => {
@@ -20,21 +30,75 @@ function WeatherSearch() {
         const response = await fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=${search}&appid=23e343b2ea6742cf142bfb32f060c148`
         );
+   
         if (componentMounted && response.status === 200) {
           const weatherData = await response.json();
           setData(weatherData);
+          
         }
       } catch (error) {
         console.log("Error fetching weather data:", error);
       }
     };
 
-    fetchWeather();
+if(search){
+  fetchWeather();
+}
+
 
     return () => {
       componentMounted = false;
     };
   }, [search]);
+
+  const getCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          await reverseGeocode(latitude, longitude);
+        },
+        (error) => {
+          console.log("Error getting current location:", error);
+      
+        }
+      );
+    } else {
+      console.log("Geolocation is not supported by your browser.");
+     
+    }
+  };
+
+  const reverseGeocode = async (latitude, longitude) => {
+    try {
+      console.log("here1",latitude,longitude);
+      var geocodeUrl =
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/' +
+        longitude +
+        ',' +
+        latitude
+         +
+        '.json?access_token=pk.eyJ1IjoibW9oZGlyZmFkIiwiYSI6ImNsZzNwaWFncTBocHozb28zb3YzcHpvejEifQ.CJcMCCKk4SKR6JBo2-JNnQ';
+      fetch(geocodeUrl)
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          console.log(data);
+          // Get the city name from the geocoding data ---------------------useing MapBox-gl
+          const cityName = data.features[0]?.place_name.split(",")[0];
+          const result = cityName.split("-")[1];
+       
+          setSearch(result)
+        })
+        .catch(function (error) {
+          console.log("Error reverse geocoding:", error);
+        });
+    } catch (error) {
+      console.log("Error reverse geocoding:", error);
+    }
+  };
+  
 
   let emoji = null;
   if (typeof data?.main !== "undefined") {
@@ -52,9 +116,7 @@ function WeatherSearch() {
       emoji = "smog";
     }
   } else {
-    return <div className="flex justify-content-center align-items-center">
-      <img src={loader} className="flex justify-content-center " alt=""></img>
-    </div>;
+    return
   }
 
 
@@ -78,16 +140,22 @@ function WeatherSearch() {
   const HandleSubmit = (e) =>{
     e.preventDefault();
     setSearch(input)
+   
 
   }
 
   return (
-    <div>
+   
+        <div className="weather-search-container">
+      <div className="background"></div>
       <div className="container mt-5 mb-2">
         <div className="row justify-content-center">
           <div className="col-md-4">
+          <div className="background-text">
+        <h1 className="cursive-font">Weather App</h1>
+      </div>
             <div className="card text-white text-center border-0">
-              <img
+              <LazyLoadImage
                 className="h-96"
                 src={`https://source.unsplash.com/600x900/?${data?.weather[0].main}`}
                 class="card-img"
@@ -119,7 +187,7 @@ function WeatherSearch() {
 
                 <div className="bg-dark bg-opacity-50 py-3 rounded">
                   <h2 className="card-title">{data?.name}</h2>
-                  {console.log(emoji,":;;;;;;;;;;;;;;;;;;;;;;;;;")}
+             
                   <p className="card-text lead">{day}, {month} {date}, {year}
                   <br/>
                   {time}
@@ -145,6 +213,7 @@ function WeatherSearch() {
           </div>
         </div>
       </div>
+     
     </div>
   );
 }
