@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCloud, faBolt, faCloudRain, faCloudShowersHeavy, faSnowflake, faSmog } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import loader from '../Assets/loader.gif'
 
 library.add(faCloud, faBolt, faCloudRain, faCloudShowersHeavy, faSnowflake, faSmog);
 
@@ -9,6 +10,7 @@ function WeatherSearch() {
   const [search, setSearch] = useState("Kannur");
   const [data, setData] = useState(null);
   const [input, setInput] = useState("");
+
 
   useEffect(() => {
     let componentMounted = true;
@@ -50,13 +52,34 @@ function WeatherSearch() {
       emoji = "smog";
     }
   } else {
-    return <div>...Loading</div>;
+    return <div className="flex justify-content-center align-items-center">
+      <img src={loader} className="flex justify-content-center " alt=""></img>
+    </div>;
   }
 
 
   let temp = (data?.main?.temp - 273.15)?.toFixed(2);
   let temp_min = (data?.main?.temp_min - 273.15)?.toFixed(2);
   let temp_max = (data?.main?.temp_max - 273.15)?.toFixed(2);
+
+  let d = new Date();
+  let date = d.getDate();
+  let year = d.getFullYear();
+  let month = d.toLocaleString("default",{month:"long"});
+  let day = d.toLocaleString("default" , {weekday:"long"});
+
+  let time = d.toLocaleString([],{
+
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const HandleSubmit = (e) =>{
+    e.preventDefault();
+    setSearch(input)
+
+  }
 
   return (
     <div>
@@ -66,12 +89,12 @@ function WeatherSearch() {
             <div className="card text-white text-center border-0">
               <img
                 className="h-96"
-                src="https://images.unsplash.com/photo-1524821261922-e353d72c20e5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8MTYwMHg5MDB8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=50"
+                src={`https://source.unsplash.com/600x900/?${data?.weather[0].main}`}
                 class="card-img"
                 alt="weather forcasting......"
               />
               <div className="card-img-overlay">
-                <form>
+                <form onSubmit={HandleSubmit}>
                   <div className="input-group mb-4 w-100 mx-auto">
                     <input
                       type="search"
@@ -79,6 +102,10 @@ function WeatherSearch() {
                       placeholder="Search City"
                       aria-label="Search City"
                       aria-describedby="basic-addon2"
+                      name="search"
+                      value = {input}
+                      onChange={(e)=>setInput(e.target.value)}
+                      required
                     />
                     <button
                       type="submit"
@@ -93,7 +120,10 @@ function WeatherSearch() {
                 <div className="bg-dark bg-opacity-50 py-3 rounded">
                   <h2 className="card-title">{data?.name}</h2>
                   {console.log(emoji,":;;;;;;;;;;;;;;;;;;;;;;;;;")}
-                  <p className="card-text lead">Tuesday, July 4, 2022</p>
+                  <p className="card-text lead">{day}, {month} {date}, {year}
+                  <br/>
+                  {time}
+                  </p>
                   <hr />
                   <i className={`fas fa-${emoji} fa-4x`}></i>
                   <h1 className="fw-bolder mb-5">
