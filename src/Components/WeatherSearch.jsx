@@ -6,6 +6,7 @@ import loader from '../Assets/loader.gif';
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import "./WeatherSearch.css"; 
+import clouds from '../Assets/clouds.mp4'
 
 library.add(faCloud, faBolt, faCloudRain, faCloudShowersHeavy, faSnowflake, faSmog);
 
@@ -13,16 +14,15 @@ function WeatherSearch() {
   const [search, setSearch] = useState("" || "Kozhikode");
   const [data, setData] = useState(null);
   const [input, setInput] = useState("");
+  const [backgroundVideo, setBackgroundVideo] = useState("");
 
   
   useEffect(() => {
     getCurrentLocation();
-  }, []); // Call getCurrentLocation on component mount
+    
+  }, []); 
 
-
-  useEffect(() => {
-
-     
+  useEffect(() => { 
     let componentMounted = true;
 
     const fetchWeather = async () => {
@@ -34,6 +34,7 @@ function WeatherSearch() {
         if (componentMounted && response.status === 200) {
           const weatherData = await response.json();
           setData(weatherData);
+          setWeatherBackground(weatherData.weather[0].main);
           
         }
       } catch (error) {
@@ -99,7 +100,33 @@ if(search){
     }
   };
   
+  const setWeatherBackground = (weather) => {
+    let videoFile = "";
+    switch (weather) {
+      case "Clouds":
+        videoFile = "clouds.mp4";
+        break;
+      case "Thunderstorm":
+        videoFile = "storm.mp4";
+        break;
+      case "Drizzle":
+        videoFile = "drizzile.mp4";
+        break;
+      case "Rain":
+        videoFile = "rain.mp4";
+        break;
+      case "Snow":
+        videoFile = "snow.mp4";
+        break;
+      default:
+        videoFile = "clouds.mp4";
+        break;
+    }
+    setBackgroundVideo(videoFile);
+   
+  };
 
+ 
   let emoji = null;
   if (typeof data?.main !== "undefined") {
     if (data?.weather[0].main === "Clouds") {
@@ -147,7 +174,17 @@ if(search){
   return (
    
         <div className="weather-search-container">
-      <div className="background"></div>
+       {backgroundVideo && (
+        <video
+          id="background-video"
+          className="background-video"
+          src={require(`../Assets/${backgroundVideo}`)}
+          type="video/mp4"
+          autoPlay
+          loop
+          muted
+        ></video>
+      )}
       <div className="container mt-5 mb-2">
         <div className="row justify-content-center">
           <div className="col-md-4">
@@ -156,7 +193,7 @@ if(search){
       </div>
             <div className="card text-white text-center border-0">
               <LazyLoadImage
-                className="h-96"
+                className="card-img h-96"
                 src={`https://source.unsplash.com/600x900/?${data?.weather[0].main}`}
                 class="card-img"
                 alt="weather forcasting......"
