@@ -65,7 +65,7 @@ if(search){
         }
       );
     } else {
-      console.log("Geolocation is not supported by your browser.");
+      console.log("Geolocation is not supported by your browser. please try again");
      
     }
   };
